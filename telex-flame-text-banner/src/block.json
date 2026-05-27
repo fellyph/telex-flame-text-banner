@@ -1,0 +1,56 @@
+
+  {
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "telex/block-telex-flame-text-banner",
+	"version": "0.1.0",
+	"title": "Krakow Text Banner Block",
+	"category": "media",
+	"icon": "lightbulb",
+	"description": "A striking banner block that renders text with animated flame effects rising from the letters.",
+	"example": {
+		"attributes": {
+			"text": "FIRE STORM",
+			"textSize": "large",
+			"flameColorInner": "#ffdd33",
+			"flameColorOuter": "#ff4500"
+		}
+	},
+	"attributes": {
+		"text": {
+			"type": "string",
+			"default": "FLAME TEXT"
+		},
+		"textSize": {
+			"type": "string",
+			"default": "large"
+		},
+		"flameColorInner": {
+			"type": "string",
+			"default": "#ffdd33"
+		},
+		"flameColorOuter": {
+			"type": "string",
+			"default": "#ff4500"
+		},
+		"backgroundColor": {
+			"type": "string",
+			"default": "#1a1a2e"
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": ["wide", "full"],
+		"spacing": {
+			"padding": true,
+			"margin": true
+		}
+	},
+	"textdomain": "telex-flame-text-banner",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "file:./style-index.css",
+	"viewScript": "file:./view.js",
+	"render": "file:./render.php"
+}
+  

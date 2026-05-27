@@ -1,0 +1,687 @@
+<artefact xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="artefact.xsd" name="Flame Text Banner Block" slug="telex-flame-text-banner" type="code-package" schemaVersion="2">
+  <file path="readme.txt">
+    <description>This file contains the readme information for the block. It is used to provide information about the block, its usage, and any other relevant details.</description>
+    <content><![CDATA[
+=== Flame Text Banner Block ===
+
+Contributors:      WordPress Telex
+Tags:              block, banner, flame, text effect, animation
+Tested up to:      6.8
+Stable tag:        0.1.0
+License:           GPLv2 or later
+License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+A striking banner block that renders text with animated flame effects rising from the letters.
+
+== Description ==
+
+The Flame Text Banner Block lets you create eye-catching banners with animated fire effects on your text. Flames dance and flicker realistically above each letter, creating a dramatic visual impact perfect for headlines, call-to-action sections, or any content that needs to stand out.
+
+**Features:**
+
+* Fully customizable banner text
+* Animated flame particles that rise from each letter
+* Configurable flame color scheme (inner and outer flame colors)
+* Adjustable text size (small, medium, large, extra-large)
+* Dark background with customizable overlay
+* Smooth, performant CSS and canvas-based animation
+* Responsive design that works on all screen sizes
+* Live preview in the block editor
+
+== Installation ==
+
+1. Upload the plugin files to the `/wp-content/plugins/telex-flame-text-banner` directory, or install the plugin through the WordPress plugins screen directly.
+2. Activate the plugin through the 'Plugins' screen in WordPress
+3. In the block editor, search for "Flame Text Banner" and insert it into your content.
+4. Type your desired text and customize the flame appearance using the block sidebar controls.
+
+== Frequently Asked Questions ==
+
+= Can I change the flame colors? =
+
+Yes! Use the block sidebar controls to set both the inner (bright) and outer flame colors for a custom fire look.
+
+= Does this affect page performance? =
+
+The animation uses an efficient canvas-based particle system that pauses when the block is not visible on screen, ensuring minimal performance impact.
+
+= Can I adjust the text size? =
+
+Yes, you can choose from four text size presets: Small, Medium, Large, and Extra Large.
+
+== Screenshots ==
+
+1. Flame Text Banner block in action with default orange/red flames.
+2. Block editor sidebar controls for customizing flame appearance.
+
+== Changelog ==
+
+= 0.1.0 =
+* Initial release with animated flame text effect
+* Customizable flame colors, text size, and banner text
+]]></content></file>
+  <file path="telex-flame-text-banner.php">
+    <description>This file contains the block registration code in the form of a single block plugin.</description>
+    <content><![CDATA[<?php
+/**
+ * Plugin Name:       Flame Text Banner Block
+ * Description:       A striking banner block that renders text with animated flame effects rising from the letters.
+ * Version:           0.1.0
+ * Requires at least: 6.7
+ * Requires PHP:      7.4
+ * Author:            WordPress Telex
+ * License:           GPLv2 or later
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain:       telex-flame-text-banner
+ *
+ * @package TelexFlameTextBanner
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+/**
+ * Registers the block using the metadata loaded from the `block.json` file.
+ * Behind the scenes, it registers also all assets so they can be enqueued
+ * through the block editor in the corresponding context.
+ *
+ * @see https://developer.wordpress.org/reference/functions/register_block_type/
+ */
+if ( ! function_exists( 'telex_flame_text_banner_telex_flame_text_banner_block_init' ) ) {
+	function telex_flame_text_banner_telex_flame_text_banner_block_init(): void {
+		register_block_type( __DIR__ . '/build/' );
+	}
+}
+add_action( 'init', 'telex_flame_text_banner_telex_flame_text_banner_block_init' );
+]]></content>
+  </file>
+  <file path="src/block.json">
+    <description>This file contains metadata about the block including its name, title, category, icon, and other properties.</description>
+  <content><![CDATA[
+  {
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "telex/block-telex-flame-text-banner",
+	"version": "0.1.0",
+	"title": "Krakow Text Banner Block",
+	"category": "media",
+	"icon": "lightbulb",
+	"description": "A striking banner block that renders text with animated flame effects rising from the letters.",
+	"example": {
+		"attributes": {
+			"text": "FIRE STORM",
+			"textSize": "large",
+			"flameColorInner": "#ffdd33",
+			"flameColorOuter": "#ff4500"
+		}
+	},
+	"attributes": {
+		"text": {
+			"type": "string",
+			"default": "FLAME TEXT"
+		},
+		"textSize": {
+			"type": "string",
+			"default": "large"
+		},
+		"flameColorInner": {
+			"type": "string",
+			"default": "#ffdd33"
+		},
+		"flameColorOuter": {
+			"type": "string",
+			"default": "#ff4500"
+		},
+		"backgroundColor": {
+			"type": "string",
+			"default": "#1a1a2e"
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": ["wide", "full"],
+		"spacing": {
+			"padding": true,
+			"margin": true
+		}
+	},
+	"textdomain": "telex-flame-text-banner",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "file:./style-index.css",
+	"viewScript": "file:./view.js",
+	"render": "file:./render.php"
+}
+  ]]></content>
+  </file>
+  <file path="src/index.js">
+    <description>This file registers the block, specifies the edit and save functions, and loads the block's metadata</description>
+	<content><![CDATA[
+import { registerBlockType } from '@wordpress/blocks';
+import './style.scss';
+import './editor.scss';
+import Edit from './edit';
+import metadata from './block.json';
+
+registerBlockType( metadata.name, {
+	edit: Edit,
+} );
+]]></content>
+  </file>
+  <file path="src/edit.js">
+    <description>This file contains the edit function for the block which is responsible for rendering the block in the editor.</description>
+	<content><![CDATA[
+import { __ } from '@wordpress/i18n';
+import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
+import {
+	PanelBody,
+	TextControl,
+	SelectControl,
+	ColorPicker,
+	__experimentalText as Text,
+} from '@wordpress/components';
+import { useEffect, useRef, useCallback } from '@wordpress/element';
+import './editor.scss';
+
+const TEXT_SIZE_OPTIONS = [
+	{ label: __( 'Small', 'telex-flame-text-banner' ), value: 'small' },
+	{ label: __( 'Medium', 'telex-flame-text-banner' ), value: 'medium' },
+	{ label: __( 'Large', 'telex-flame-text-banner' ), value: 'large' },
+	{ label: __( 'Extra Large', 'telex-flame-text-banner' ), value: 'xlarge' },
+];
+
+const TEXT_SIZE_MAP = {
+	small: '2rem',
+	medium: '3.5rem',
+	large: '5rem',
+	xlarge: '7rem',
+};
+
+/**
+ * @param {Object}   props
+ * @param {Object}   props.attributes
+ * @param {Function} props.setAttributes
+ * @return {Element} Element to render.
+ */
+export default function Edit( { attributes, setAttributes } ) {
+	const { text, textSize, flameColorInner, flameColorOuter, backgroundColor } = attributes;
+	const canvasRef = useRef( null );
+	const containerRef = useRef( null );
+	const animationRef = useRef( null );
+	const particlesRef = useRef( [] );
+
+	const createParticle = useCallback(
+		/**
+		 * @param {number} x
+		 * @param {number} y
+		 * @return {{x: number, y: number, vx: number, vy: number, life: number, maxLife: number, size: number}}
+		 */
+		( x, y ) => {
+			return {
+				x: x + ( Math.random() - 0.5 ) * 8,
+				y,
+				vx: ( Math.random() - 0.5 ) * 1.5,
+				vy: -( Math.random() * 3 + 1.5 ),
+				life: 0,
+				maxLife: Math.random() * 40 + 20,
+				size: Math.random() * 6 + 3,
+			};
+		},
+		[]
+	);
+
+	useEffect( () => {
+		const canvas = canvasRef.current;
+		const container = containerRef.current;
+		if ( ! canvas || ! container ) {
+			return;
+		}
+
+		const ctx = canvas.getContext( '2d' );
+		if ( ! ctx ) {
+			return;
+		}
+
+		const resizeCanvas = () => {
+			const rect = container.getBoundingClientRect();
+			canvas.width = rect.width;
+			canvas.height = rect.height;
+		};
+
+		resizeCanvas();
+
+		const resizeObserver = new ResizeObserver( resizeCanvas );
+		resizeObserver.observe( container );
+
+		/**
+		 * @param {string} hex
+		 * @return {{r: number, g: number, b: number}}
+		 */
+		const hexToRgb = ( hex ) => {
+			const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec( hex );
+			return result
+				? {
+						r: parseInt( result[ 1 ], 16 ),
+						g: parseInt( result[ 2 ], 16 ),
+						b: parseInt( result[ 3 ], 16 ),
+				  }
+				: { r: 255, g: 200, b: 50 };
+		};
+
+		const animate = () => {
+			ctx.clearRect( 0, 0, canvas.width, canvas.height );
+
+			const textEl = container.querySelector( '.telex-flame-text-banner__text' );
+			if ( textEl ) {
+				const textRect = textEl.getBoundingClientRect();
+				const containerRect = container.getBoundingClientRect();
+				const textTop = textRect.top - containerRect.top;
+				const textLeft = textRect.left - containerRect.left;
+				const textWidth = textRect.width;
+
+				for ( let i = 0; i < 3; i++ ) {
+					const px = textLeft + Math.random() * textWidth;
+					particlesRef.current.push( createParticle( px, textTop ) );
+				}
+			}
+
+			const innerRgb = hexToRgb( flameColorInner );
+			const outerRgb = hexToRgb( flameColorOuter );
+
+			particlesRef.current = particlesRef.current.filter( ( p ) => {
+				p.life++;
+				if ( p.life > p.maxLife ) {
+					return false;
+				}
+
+				p.x += p.vx;
+				p.y += p.vy;
+				p.vx += ( Math.random() - 0.5 ) * 0.3;
+				p.vy -= 0.02;
+
+				const lifeRatio = p.life / p.maxLife;
+				const alpha = 1 - lifeRatio;
+				const currentSize = p.size * ( 1 - lifeRatio * 0.5 );
+
+				const r = Math.round( innerRgb.r + ( outerRgb.r - innerRgb.r ) * lifeRatio );
+				const g = Math.round( innerRgb.g + ( outerRgb.g - innerRgb.g ) * lifeRatio );
+				const b = Math.round( innerRgb.b + ( outerRgb.b - innerRgb.b ) * lifeRatio );
+
+				ctx.beginPath();
+				ctx.arc( p.x, p.y, currentSize, 0, Math.PI * 2 );
+				ctx.fillStyle = `rgba(${ r }, ${ g }, ${ b }, ${ alpha * 0.7 })`;
+				ctx.fill();
+
+				ctx.beginPath();
+				ctx.arc( p.x, p.y, currentSize * 0.5, 0, Math.PI * 2 );
+				ctx.fillStyle = `rgba(${ innerRgb.r }, ${ innerRgb.g }, ${ innerRgb.b }, ${ alpha })`;
+				ctx.fill();
+
+				return true;
+			} );
+
+			animationRef.current = requestAnimationFrame( animate );
+		};
+
+		animate();
+
+		return () => {
+			if ( animationRef.current ) {
+				cancelAnimationFrame( animationRef.current );
+			}
+			resizeObserver.disconnect();
+			particlesRef.current = [];
+		};
+	}, [ text, textSize, flameColorInner, flameColorOuter, createParticle ] );
+
+	const blockProps = useBlockProps( {
+		className: 'telex-flame-text-banner',
+		style: {
+			backgroundColor,
+		},
+	} );
+
+	return (
+		<>
+			<InspectorControls>
+				<PanelBody title={ __( 'Banner Settings', 'telex-flame-text-banner' ) }>
+					<TextControl
+						label={ __( 'Banner Text', 'telex-flame-text-banner' ) }
+						value={ text }
+						onChange={ ( value ) => setAttributes( { text: value } ) }
+						help={ __( 'Enter the text to display with flame effects.', 'telex-flame-text-banner' ) }
+					/>
+					<SelectControl
+						label={ __( 'Text Size', 'telex-flame-text-banner' ) }
+						value={ textSize }
+						options={ TEXT_SIZE_OPTIONS }
+						onChange={ ( value ) => setAttributes( { textSize: value } ) }
+					/>
+				</PanelBody>
+				<PanelBody title={ __( 'Flame Colors', 'telex-flame-text-banner' ) } initialOpen={ false }>
+					<Text variant="muted" style={ { marginBottom: '8px', display: 'block' } }>
+						{ __( 'Inner Flame Color', 'telex-flame-text-banner' ) }
+					</Text>
+					<ColorPicker
+						color={ flameColorInner }
+						onChange={ ( value ) => setAttributes( { flameColorInner: value } ) }
+						enableAlpha={ false }
+					/>
+					<Text variant="muted" style={ { marginBottom: '8px', marginTop: '16px', display: 'block' } }>
+						{ __( 'Outer Flame Color', 'telex-flame-text-banner' ) }
+					</Text>
+					<ColorPicker
+						color={ flameColorOuter }
+						onChange={ ( value ) => setAttributes( { flameColorOuter: value } ) }
+						enableAlpha={ false }
+					/>
+				</PanelBody>
+				<PanelBody title={ __( 'Background', 'telex-flame-text-banner' ) } initialOpen={ false }>
+					<Text variant="muted" style={ { marginBottom: '8px', display: 'block' } }>
+						{ __( 'Background Color', 'telex-flame-text-banner' ) }
+					</Text>
+					<ColorPicker
+						color={ backgroundColor }
+						onChange={ ( value ) => setAttributes( { backgroundColor: value } ) }
+						enableAlpha={ false }
+					/>
+				</PanelBody>
+			</InspectorControls>
+			<div { ...blockProps }>
+				<div className="telex-flame-text-banner__inner" ref={ containerRef }>
+					<canvas className="telex-flame-text-banner__canvas" ref={ canvasRef } />
+					<span
+						className="telex-flame-text-banner__text"
+						style={ { fontSize: TEXT_SIZE_MAP[ textSize ] || '5rem' } }
+					>
+						{ text }
+					</span>
+				</div>
+			</div>
+		</>
+	);
+}
+]]></content>
+  </file>
+  <file path="src/save.js">
+    <description>This file contains the save function for the block. Since this is a dynamic block, save returns null.</description>
+	<content><![CDATA[
+]]></content>
+  </file>
+  <file path="src/style.scss">
+    <description>This file contains styles for the block on both the front end and editor.</description>
+	<content><![CDATA[
+.wp-block-telex-block-telex-flame-text-banner {
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	border-radius: 8px;
+}
+
+.telex-flame-text-banner__inner {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 280px;
+	padding: 60px 40px;
+	overflow: hidden;
+}
+
+.telex-flame-text-banner__canvas {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	z-index: 1;
+}
+
+.telex-flame-text-banner__text {
+	position: relative;
+	z-index: 2;
+	font-weight: 900;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: transparent;
+	background: linear-gradient(to top, #ff4500, #ffdd33, #fff8e1);
+	background-clip: text;
+	-webkit-background-clip: text;
+	text-align: center;
+	line-height: 1.2;
+	text-shadow:
+		0 0 20px rgba(255, 69, 0, 0.6),
+		0 0 40px rgba(255, 69, 0, 0.4),
+		0 0 80px rgba(255, 69, 0, 0.2);
+	filter: brightness(1.1);
+	word-break: break-word;
+}
+]]></content>
+  </file>
+  <file path="src/editor.scss">
+    <description>This file contains styles for the block in the editor.</description>
+	<content><![CDATA[
+.wp-block-telex-block-telex-flame-text-banner {
+	cursor: pointer;
+
+	&.is-selected {
+		outline: 2px solid var(--wp-admin-theme-color, #007cba);
+		outline-offset: 2px;
+	}
+}
+]]></content>
+  </file>
+  <file path="src/view.js">
+    <description>This file contains the frontend JavaScript for the flame particle animation.</description>
+	<content><![CDATA[
+document.addEventListener( 'DOMContentLoaded', () => {
+	const blocks = document.querySelectorAll( '.wp-block-telex-block-telex-flame-text-banner' );
+
+	blocks.forEach( ( block ) => {
+		const container = block.querySelector( '.telex-flame-text-banner__inner' );
+		const canvas = block.querySelector( '.telex-flame-text-banner__canvas' );
+		const textEl = block.querySelector( '.telex-flame-text-banner__text' );
+
+		if ( ! container || ! canvas || ! textEl ) {
+			return;
+		}
+
+		const ctx = canvas.getContext( '2d' );
+		if ( ! ctx ) {
+			return;
+		}
+
+		const flameColorInner = block.dataset.flameColorInner || '#ffdd33';
+		const flameColorOuter = block.dataset.flameColorOuter || '#ff4500';
+
+		let particles = [];
+		let animationId = null;
+		let isVisible = true;
+
+		const resizeCanvas = () => {
+			const rect = container.getBoundingClientRect();
+			canvas.width = rect.width;
+			canvas.height = rect.height;
+		};
+
+		resizeCanvas();
+
+		const resizeObserver = new ResizeObserver( resizeCanvas );
+		resizeObserver.observe( container );
+
+		/**
+		 * @param {string} hex
+		 * @return {{r: number, g: number, b: number}}
+		 */
+		const hexToRgb = ( hex ) => {
+			const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec( hex );
+			return result
+				? {
+						r: parseInt( result[ 1 ], 16 ),
+						g: parseInt( result[ 2 ], 16 ),
+						b: parseInt( result[ 3 ], 16 ),
+				  }
+				: { r: 255, g: 200, b: 50 };
+		};
+
+		/**
+		 * @param {number} x
+		 * @param {number} y
+		 * @return {{x: number, y: number, vx: number, vy: number, life: number, maxLife: number, size: number}}
+		 */
+		const createParticle = ( x, y ) => {
+			return {
+				x: x + ( Math.random() - 0.5 ) * 8,
+				y,
+				vx: ( Math.random() - 0.5 ) * 1.5,
+				vy: -( Math.random() * 3 + 1.5 ),
+				life: 0,
+				maxLife: Math.random() * 40 + 20,
+				size: Math.random() * 6 + 3,
+			};
+		};
+
+		const innerRgb = hexToRgb( flameColorInner );
+		const outerRgb = hexToRgb( flameColorOuter );
+
+		const animate = () => {
+			if ( ! isVisible ) {
+				animationId = requestAnimationFrame( animate );
+				return;
+			}
+
+			ctx.clearRect( 0, 0, canvas.width, canvas.height );
+
+			const textRect = textEl.getBoundingClientRect();
+			const containerRect = container.getBoundingClientRect();
+			const textTop = textRect.top - containerRect.top;
+			const textLeft = textRect.left - containerRect.left;
+			const textWidth = textRect.width;
+
+			for ( let i = 0; i < 3; i++ ) {
+				const px = textLeft + Math.random() * textWidth;
+				particles.push( createParticle( px, textTop ) );
+			}
+
+			particles = particles.filter( ( p ) => {
+				p.life++;
+				if ( p.life > p.maxLife ) {
+					return false;
+				}
+
+				p.x += p.vx;
+				p.y += p.vy;
+				p.vx += ( Math.random() - 0.5 ) * 0.3;
+				p.vy -= 0.02;
+
+				const lifeRatio = p.life / p.maxLife;
+				const alpha = 1 - lifeRatio;
+				const currentSize = p.size * ( 1 - lifeRatio * 0.5 );
+
+				const r = Math.round( innerRgb.r + ( outerRgb.r - innerRgb.r ) * lifeRatio );
+				const g = Math.round( innerRgb.g + ( outerRgb.g - innerRgb.g ) * lifeRatio );
+				const b = Math.round( innerRgb.b + ( outerRgb.b - innerRgb.b ) * lifeRatio );
+
+				ctx.beginPath();
+				ctx.arc( p.x, p.y, currentSize, 0, Math.PI * 2 );
+				ctx.fillStyle = `rgba(${ r }, ${ g }, ${ b }, ${ alpha * 0.7 })`;
+				ctx.fill();
+
+				ctx.beginPath();
+				ctx.arc( p.x, p.y, currentSize * 0.5, 0, Math.PI * 2 );
+				ctx.fillStyle = `rgba(${ innerRgb.r }, ${ innerRgb.g }, ${ innerRgb.b }, ${ alpha })`;
+				ctx.fill();
+
+				return true;
+			} );
+
+			animationId = requestAnimationFrame( animate );
+		};
+
+		const observer = new IntersectionObserver(
+			( entries ) => {
+				entries.forEach( ( entry ) => {
+					isVisible = entry.isIntersecting;
+				} );
+			},
+			{ threshold: 0.1 }
+		);
+
+		observer.observe( block );
+		animate();
+	} );
+} );
+]]></content>
+  </file>
+  <file path="src/render.php">
+    <description>This file contains the render callback function for the block.</description>
+	<content><![CDATA[<?php
+/**
+ * Render callback for the Flame Text Banner block.
+ *
+ * @see https://github.com/WordPress/gutenberg/blob/trunk/docs/reference-guides/block-api/block-metadata.md#render
+ *
+ * @param array    $attributes Block attributes.
+ * @param string   $content    Block content.
+ * @param WP_Block $block      Block instance.
+ */
+
+$text             = $attributes['text'] ?? 'FLAME TEXT';
+$text_size        = $attributes['textSize'] ?? 'large';
+$flame_inner      = $attributes['flameColorInner'] ?? '#ffdd33';
+$flame_outer      = $attributes['flameColorOuter'] ?? '#ff4500';
+$background_color = $attributes['backgroundColor'] ?? '#1a1a2e';
+
+$size_map = array(
+	'small'  => '2rem',
+	'medium' => '3.5rem',
+	'large'  => '5rem',
+	'xlarge' => '7rem',
+);
+
+$font_size = isset( $size_map[ $text_size ] ) ? $size_map[ $text_size ] : '5rem';
+
+$wrapper_attributes = get_block_wrapper_attributes(
+	array(
+		'style'                  => 'background-color:' . esc_attr( $background_color ) . ';',
+		'data-flame-color-inner' => esc_attr( $flame_inner ),
+		'data-flame-color-outer' => esc_attr( $flame_outer ),
+	)
+);
+?>
+<div <?php echo $wrapper_attributes; ?>>
+	<div class="telex-flame-text-banner__inner">
+		<canvas class="telex-flame-text-banner__canvas"></canvas>
+		<span class="telex-flame-text-banner__text" style="font-size:<?php echo esc_attr( $font_size ); ?>">
+			<?php echo esc_html( $text ); ?>
+		</span>
+	</div>
+</div>
+]]></content>
+  </file>
+  <file path="package.json">
+    <description>The package.json file for the block plugin.</description>
+  <content><![CDATA[
+  {
+	"name": "telex-flame-text-banner",
+	"version": "0.1.0",
+	"description": "A striking banner block that renders text with animated flame effects rising from the letters.",
+	"author": "WordPress Telex",
+	"license": "GPL-2.0-or-later",
+	"main": "build/index.js",
+	"scripts": {
+		"build": "wp-scripts build",
+		"format": "wp-scripts format",
+		"lint:css": "wp-scripts lint-style",
+		"lint:js": "wp-scripts lint-js",
+		"packages-update": "wp-scripts packages-update",
+		"plugin-zip": "wp-scripts plugin-zip",
+		"start": "wp-scripts start"
+	},
+    "devDependencies": {
+        "@wordpress/scripts": "^30.15.0"
+	}
+}
+]]></content>
+  </file>
+</artefact>
