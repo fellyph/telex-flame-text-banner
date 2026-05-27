@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:       Flame Text Banner Block
+ * Plugin Name:       Krakow Text Banner Block
  * Description:       A striking banner block that renders text with animated flame effects rising from the letters.
  * Version:           0.1.0
  * Requires at least: 6.7
